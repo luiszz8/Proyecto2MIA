@@ -3,11 +3,13 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"math"
+	"net/http"
 	"os"
 	"os/exec"
 	"strconv"
@@ -150,6 +152,41 @@ type MyStructure struct {
 var listaMontadas PartitionesMontadas
 var userActive usuarioLogueado
 
+func toBase64(b []byte) string {
+	return base64.StdEncoding.EncodeToString(b)
+}
+
+func convertirImagen(ruta string) string {
+	imagen := ""
+	// Read the entire file into a byte slice
+	bytes, err := ioutil.ReadFile(ruta)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var base64Encoding string
+
+	// Determine the content type of the image file
+	mimeType := http.DetectContentType(bytes)
+
+	// Prepend the appropriate URI scheme header depending
+	// on the MIME type
+	switch mimeType {
+	case "image/jpeg":
+		base64Encoding += "data:image/jpeg;base64,"
+	case "image/png":
+		base64Encoding += "data:image/png;base64,"
+	}
+
+	// Append the base64 encoded output
+	base64Encoding += toBase64(bytes)
+
+	// Print the full base64 representation of the image
+	//fmt.Println(base64Encoding)
+	imagen = base64Encoding
+	return imagen
+}
+
 func mainArchivos() {
 	userActive.active = false
 	userActive.admin = false
@@ -195,16 +232,17 @@ func PrueComentarios(prueba string) {
 	fmt.Println("FCometario")
 }
 
-func ejecutar(prueba string) {
+func ejecutar(prueba string) string {
+	imagen := ""
 	prueba = strings.Split(prueba, "#")[0]
 	prueba = strings.Split(prueba, "\r")[0]
 	if prueba == "" {
-		return
+		return imagen
 	}
 	prueba = strings.ToLower(prueba)
 	if prueba == "pause" {
-		//pause()
-		return
+		pause()
+		return imagen
 	}
 	fmt.Println(prueba)
 	delimitador_mkdisk := "mkdisk "
@@ -278,8 +316,9 @@ func ejecutar(prueba string) {
 
 	arreglo12 := strings.Split(prueba, delimitador_rep)
 	if arreglo12[0] == "" {
-		reportes(arreglo12[1])
+		imagen = reportes(arreglo12[1])
 	}
+	return imagen
 }
 
 func rmdisk(linea string) {
@@ -3540,12 +3579,15 @@ func repSuper(p string, id string) {
 
 func pause() {
 	var eleccion string //Declarar variable y tipo antes de escanear, esto es obligatorio
-	fmt.Scanln(&eleccion)
 	fmt.Println("Pausa")
+	fmt.Scanln(&eleccion)
+	fmt.Println("Salio de pausa")
+
 }
 
-func reportes(linea string) {
+func reportes(linea string) string {
 
+	imagen := ""
 	delimitador := " "
 	delimitador2 := "="
 	arreglo := strings.Split(linea, delimitador)
@@ -3649,4 +3691,6 @@ func reportes(linea string) {
 	} else if name == "sb" {
 		repSuper(path, id)
 	}
+	imagen = convertirImagen(path)
+	return imagen
 }

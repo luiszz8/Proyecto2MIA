@@ -10,7 +10,7 @@ import (
 func getHola(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	mainArchivos()
-	json.NewEncoder(w).Encode("HOLA MUNDO")
+	json.NewEncoder(w).Encode("comando Exitoso")
 }
 
 type inicioS struct {
@@ -50,11 +50,15 @@ func Comandos(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Error datos no validos")
 	}
 	json.Unmarshal(reqBody, &comand) //La función Unmarshal() en la codificación del paquete / json se utiliza para descomprimir o decodificar los datos de JSON a la estructura
-
-	ejecutar(comand.Comando)
+	regreso := ""
+	regreso = ejecutar(comand.Comando)
 
 	w.Header().Set("Content-type", "application/json")
-	json.NewEncoder(w).Encode("comando Exitoso")
+	if regreso == "" {
+		json.NewEncoder(w).Encode("comando Exitoso")
+	} else {
+		json.NewEncoder(w).Encode(regreso)
+	}
 
 }
 
