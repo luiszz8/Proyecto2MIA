@@ -241,7 +241,7 @@ func ejecutar(prueba string) string {
 	}
 	prueba = strings.ToLower(prueba)
 	if prueba == "pause" {
-		pause()
+		//pause()
 		return imagen
 	}
 	fmt.Println(prueba)
@@ -2021,6 +2021,7 @@ func LeerDirectorioCarpeta(inodo Inodo, posI int, posB int, ruta string, listaNo
 			copy(inodoN.I_block[:], posicionBL)
 			inodoN.I_type = '0'
 			copy(inodoN.I_perm[:], "664")
+			copy(inodoN.I_size[:], "81")
 
 			nuevaCarpeta := CarpetaBloque{}
 			copy(nuevaCarpeta.B_content[0].B_name[:], ("."))
@@ -2082,6 +2083,7 @@ func LeerDirectorioCarpeta(inodo Inodo, posI int, posB int, ruta string, listaNo
 			copy(inodoN.I_mtime[:], string(time.Now().GoString()))
 			copy(inodoN.I_block[:], strconv.Itoa(primerBloqueLibre+1))
 			inodoN.I_type = '0'
+			copy(inodoN.I_size[:], "81")
 			copy(inodoN.I_perm[:], "664")
 
 			nuevaCarpetaN := CarpetaBloque{}
@@ -2196,17 +2198,17 @@ func tree(p string, id string) {
 			"<tr>\n" +
 			"<td>i_atime</td>\n" +
 			"<td>" +
-			bitsAString(inode.I_atime[:]) + "</td>\n" +
+			time.Now().Local().String() + "</td>\n" +
 			"</tr>\n" +
 			"<tr>\n" +
 			"<td>i_ctime</td>\n" +
 			"<td>" +
-			bitsAString(inode.I_ctime[:]) + "</td>\n" +
+			time.Now().Local().String() + "</td>\n" +
 			"</tr>\n" +
 			"<tr>\n" +
 			"<td>i_mtime</td>\n" +
 			"<td>" +
-			bitsAString(inode.I_mtime[:]) + "</td>\n" +
+			time.Now().Local().String() + "</td>\n" +
 			"</tr>\n"
 
 		for j := 0; j < 10; j++ {
@@ -2243,7 +2245,7 @@ func tree(p string, id string) {
 						ctmp := ""
 						ctmp += bitsAString(foldertmp.B_content[k].B_name[:])
 						content += "<tr>\n" +
-							"<td>" + ctmp + "</td>\n" +
+							"<td>" + bitsAString(foldertmp.B_content[k].B_name[:]) + "</td>\n" +
 							"<td port=\"" + strconv.Itoa(k) + "\">" +
 							bitsAString(foldertmp.B_content[k].B_inodo[:]) + "</td>\n" +
 							"</tr>\n"
@@ -2287,7 +2289,7 @@ func tree(p string, id string) {
 	}
 	content += "\n\n}\n"
 	fmt.Println(content)
-	crearDot(content, p, 2)
+	crearDot(content, p, 1)
 }
 
 func bitsAInt(arreglo []byte) int {
@@ -2314,6 +2316,13 @@ func crearDot(contenido string, nombre string, formato int) {
 	if er != nil {
 		log.Fatal(er)
 	}
+	arreglodeRutas := strings.Split(nombre, "/")
+	rutaCarpeta := ""
+	for i := 1; i < len(arreglodeRutas)-1; i++ {
+		rutaCarpeta = rutaCarpeta + "/" + arreglodeRutas[i]
+	}
+	fmt.Println(rutaCarpeta)
+	crearDirectorioSiNoExiste(rutaCarpeta)
 	compilarDot(nombre, formato)
 }
 
@@ -2540,6 +2549,7 @@ func LeerDirectorioArchivo(inodo Inodo, posI int, posB int, ruta string, listaNo
 			copy(inodoN.I_ctime[:], string(time.Now().GoString()))
 			copy(inodoN.I_mtime[:], string(time.Now().GoString()))
 			copy(inodoN.I_block[:], posicionBL)
+			copy(inodoN.I_size[:], strconv.Itoa(tamContenido))
 			inodoN.I_type = '1'
 			copy(inodoN.I_perm[:], "664")
 			punteroInicio := 0
@@ -2608,6 +2618,7 @@ func LeerDirectorioArchivo(inodo Inodo, posI int, posB int, ruta string, listaNo
 			copy(inodoN.I_mtime[:], string(time.Now().GoString()))
 			copy(inodoN.I_block[:], strconv.Itoa(primerBloqueLibre+1))
 			inodoN.I_type = '1'
+			copy(inodoN.I_size[:], strconv.Itoa(tamContenido))
 			copy(inodoN.I_perm[:], "664")
 
 			punteroInicio := 0
@@ -3439,6 +3450,8 @@ func repFile(p string, id string, nombre string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	posicionNombre := len(strings.Split(nombre, "/"))
+	nombreActual := strings.Split(nombre, "/")[posicionNombre-1]
 	inicioParticion, _ := strconv.Atoi(string(auxMontada.particion.Part_start[:posicionVacio(auxMontada.particion.Part_start[:])]))
 	inicioInodos := inicioParticion + int(unsafe.Sizeof(SuperBloque{}))
 	spr = LeerSuperBloque(file, int64(inicioParticion), 1)
@@ -3475,7 +3488,7 @@ func repFile(p string, id string, nombre string) {
 					for k := 0; k < 4; k++ {
 						ctmp := ""
 						ctmp += bitsAString(foldertmp.B_content[k].B_name[:])
-						if ctmp == nombre {
+						if ctmp == nombreActual {
 							inodoArchvio = bitsAInt(foldertmp.B_content[k].B_inodo[:])
 							inode = LeerInodo(file, int64(inicioInodos)+(int64(unsafe.Sizeof(Inodo{}))*int64(inodoArchvio)), 1)
 
@@ -3549,15 +3562,15 @@ func repSuper(p string, id string) {
 	content += "</td></tr>\n"
 	content += "<tr><td>s_free_inodes_count/ " + bitsAString(spr.S_free_inodes_count[:])
 	content += "</td></tr>\n"
-	content += "<tr><td>s_mtime/ " + bitsAString(spr.S_mtime[:])
+	content += "<tr><td>s_mtime/ " + time.Now().Local().String()
 	content += "</td></tr>\n"
 	content += "<tr><td>s_mnt_count/ " + bitsAString(spr.S_mnt_count[:])
 	content += "</td></tr>\n"
 	content += "<tr><td>s_magic/ " + bitsAString(spr.S_magic[:])
 	content += "</td></tr>\n"
-	content += "<tr><td>s_inode_size/ " + bitsAString(spr.S_inode_size[:])
+	content += "<tr><td>s_inode_size/ " + strconv.Itoa(int(unsafe.Sizeof(Inodo{})))
 	content += "</td></tr>\n"
-	content += "<tr><td>s_block_size/ " + bitsAString(spr.S_block_size[:])
+	content += "<tr><td>s_block_size/ " + strconv.Itoa(int(unsafe.Sizeof(CarpetaBloque{})))
 	content += "</td></tr>\n"
 	content += "<tr><td>s_firts_ino/ " + bitsAString(spr.S_firts_ino[:])
 	content += "</td></tr>\n"
@@ -3574,7 +3587,7 @@ func repSuper(p string, id string) {
 	content += "</table>>];\n}\n"
 	//content += "\n\n}\n"
 	fmt.Println(content)
-	crearDot(content, p, 2)
+	crearDot(content, p, 1)
 }
 
 func pause() {
