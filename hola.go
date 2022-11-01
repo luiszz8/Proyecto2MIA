@@ -241,7 +241,7 @@ func ejecutar(prueba string) string {
 	}
 	prueba = strings.ToLower(prueba)
 	if prueba == "pause" {
-		//pause()
+		pause()
 		return imagen
 	}
 	fmt.Println(prueba)
