@@ -1,0 +1,17 @@
+digraph G{
+rankdir=LR;
+graph [ dpi = "600" ]; 
+forcelabels= true;
+node [shape = plaintext];
+nodo1 [label = <<table>
+<tr>
+<td>home/archivos/entra.txt</td>
+<td>1,G,root
+1,U,root,root,123
+2,G,compi 2
+2,U,root,user1,user1
+</td>
+</tr>
+
+</table>>];
+}

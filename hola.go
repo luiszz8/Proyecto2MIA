@@ -241,7 +241,7 @@ func ejecutar(prueba string) string {
 	}
 	prueba = strings.ToLower(prueba)
 	if prueba == "pause" {
-		pause()
+		//pause()
 		return imagen
 	}
 	fmt.Println(prueba)
@@ -2305,14 +2305,14 @@ func bitsAString(arreglo []byte) string {
 }
 
 func crearDot(contenido string, nombre string, formato int) {
-	f, err := os.Create("/home/luis/proyecto2/mbr.dot")
+	f, err := os.Create("mbr.dot")
 	if err != nil {
 		panic(err)
 	}
 	f.Close()
 
 	b := []byte(contenido)
-	er := ioutil.WriteFile("/home/luis/proyecto2/mbr.dot", b, 0644)
+	er := ioutil.WriteFile("mbr.dot", b, 0644)
 	if er != nil {
 		log.Fatal(er)
 	}
@@ -2328,14 +2328,14 @@ func crearDot(contenido string, nombre string, formato int) {
 
 func compilarDot(ruta string, formato int) {
 	if formato == 1 {
-		out, err := exec.Command("dot", "-Tjpg", "/home/luis/proyecto2/mbr.dot", "-o", ruta).Output()
+		out, err := exec.Command("dot", "-Tjpg", "mbr.dot", "-o", ruta).Output()
 		if err != nil {
 			log.Fatal(err)
 
 		}
 		fmt.Println(string(out))
 	} else {
-		out, err := exec.Command("dot", "-Tpdf", "/home/luis/proyecto2/mbr.dot", "-o", ruta).Output()
+		out, err := exec.Command("dot", "-Tpdf", "mbr.dot", "-o", ruta).Output()
 		if err != nil {
 			log.Fatal(err)
 

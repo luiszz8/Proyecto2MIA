@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 func getHola(w http.ResponseWriter, r *http.Request) {
@@ -16,6 +17,7 @@ func getHola(w http.ResponseWriter, r *http.Request) {
 type inicioS struct {
 	Username string `json:"Username"`
 	Password string `json:"Password"`
+	IdG      string `json:"Id"`
 }
 
 type Instrucion struct {
@@ -37,9 +39,17 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	lgn = append(lgn, inicio)
 	fmt.Println(inicio)
 	fmt.Println("USUARIO: ", inicio.Username)
+	inicio.Username = strings.Split(inicio.Username, "\r")[0]
+	inicio.Password = strings.Split(inicio.Password, "\r")[0]
+	inicio.IdG = strings.Split(inicio.IdG, "\r")[0]
 	fmt.Println("PASSWORD: ", inicio.Password)
+	Bandera := login("Login -password=" + inicio.Password + " -usuario=" + inicio.Username + " -id=" + inicio.IdG)
 	w.Header().Set("Content-type", "application/json")
-	json.NewEncoder(w).Encode(inicio.Username)
+	Mensaje := "Crendeciales Incorrectas"
+	if Bandera {
+		Mensaje = "Bienvenido"
+	}
+	json.NewEncoder(w).Encode(Mensaje)
 
 }
 
